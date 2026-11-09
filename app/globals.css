@@ -21,6 +21,10 @@
     --color-chart-2: var(--chart-2);
     --color-chart-1: var(--chart-1);
     --color-ring: var(--ring);
+    --color-brand: var(--brand);
+    --color-brand-hover: var(--brand-hover);
+    /* Vertical role-card marquee used by the home page hero. */
+    --animate-marquee-vertical: marquee-vertical 35s linear infinite;
     --color-input: var(--input);
     --color-border: var(--border);
     --color-destructive: var(--destructive);
@@ -72,6 +76,8 @@
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
+    --brand: #FF8A33;
+    --brand-hover: #FFA05A;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
@@ -126,4 +132,14 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Moves one full copy of the role cards upward, then restarts seamlessly. */
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50%);
+  }
 }

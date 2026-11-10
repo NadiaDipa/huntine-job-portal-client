@@ -1,77 +1,79 @@
+
 "use client"
 
 import { useState } from "react"
+import type { FormEvent } from "react"
 import Link from "next/link"
-import { ArrowRight, Check } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowRight, LoaderCircle } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { AuthField, PasswordField } from "@/components/auth/auth-fields"
 import { GoogleIcon } from "@/components/auth/google-icon"
-import { getEmailError, getPasswordError } from "@/lib/auth-validation"
+import { getEmailError } from "@/lib/auth-validation"
+import { authClient } from "@/lib/auth-client"
 
-type SignInValues = {
-  email: string
-  password: string
-  rememberMe: boolean
-}
-
-type EditableField = "email" | "password"
-type SignInErrors = Partial<Record<EditableField, string>>
-
-function validate(values: SignInValues): SignInErrors {
-  const errors: SignInErrors = {}
-
-  const emailError = getEmailError(values.email)
-  if (emailError) errors.email = emailError
-
-  const passwordError = getPasswordError(values.password)
-  if (passwordError) errors.password = passwordError
-
-  return errors
-}
+const toastStyle =
+  "!border-[#C66B24]/60 !bg-[#21180F] !text-[#FFF4E8] !text-center [&_[data-title]]:!text-center [&_[data-title]]:!text-base [&_[data-description]]:!text-center [&_[data-description]]:!text-sm"
 
 export function SignInForm() {
-  const [values, setValues] = useState<SignInValues>({
-    email: "",
-    password: "",
-    rememberMe: false,
-  })
-  const [errors, setErrors] = useState<SignInErrors>({})
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [uiNotice, setUiNotice] = useState<string | null>(null)
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
 
-  function updateField(field: EditableField, value: string) {
-    setValues((current) => ({ ...current, [field]: value }))
-    setErrors((current) => ({ ...current, [field]: undefined }))
-    setSuccessMessage(null)
-    setUiNotice(null)
-  }
-
-  function handleBlur(field: EditableField) {
-    const nextErrors = validate(values)
-    setErrors((current) => ({ ...current, [field]: nextErrors[field] }))
-  }
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const nextErrors = validate(values)
-    setErrors(nextErrors)
-    setUiNotice(null)
+    if (isLoading) return
 
-    if (Object.keys(nextErrors).length > 0) {
-      setSuccessMessage(null)
+    const formData = new FormData(event.currentTarget)
+
+    const email = String(formData.get("email") ?? "").trim()
+    const password = String(formData.get("password") ?? "")
+
+    const emailError = getEmailError(email)
+
+    if (emailError) {
+      toast.error(emailError, { className: toastStyle })
       return
     }
 
-    // Deliberately frontend-only: no auth call, no storage, no real session.
-    setSuccessMessage(
-      "Everything looks good. This is a frontend-only demo — no session was created and no credentials were sent anywhere."
-    )
+    if (!password) {
+      toast.error("Enter your password.", { className: toastStyle })
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+      })
+
+      if (error) {
+        toast.error(error.message || "Unable to sign in.", {
+          className: toastStyle,
+        })
+        return
+      }
+
+      toast.success("Welcome back!", {
+        description: "You have signed in successfully.",
+        className: toastStyle,
+      })
+
+      router.replace("/")
+    } catch {
+      toast.error("Unable to sign in. Please try again.", {
+        className: toastStyle,
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    // 13px base gap; the short margins below add back the intended spacing.
     <form
       noValidate
       onSubmit={handleSubmit}
@@ -79,23 +81,17 @@ export function SignInForm() {
     >
       <AuthField
         id="sign-in-email"
+        name="email"
         label="Email Address"
         type="email"
-        value={values.email}
-        onChange={(value) => updateField("email", value)}
-        onBlur={() => handleBlur("email")}
-        error={errors.email}
         placeholder="you@example.com"
         autoComplete="email"
       />
 
       <PasswordField
         id="sign-in-password"
+        name="password"
         label="Password"
-        value={values.password}
-        onChange={(value) => updateField("password", value)}
-        onBlur={() => handleBlur("password")}
-        error={errors.password}
         placeholder="Enter your password"
         autoComplete="current-password"
       />
@@ -107,16 +103,8 @@ export function SignInForm() {
         >
           <input
             id="remember-me"
-            name="remember-me"
+            name="rememberMe"
             type="checkbox"
-            checked={values.rememberMe}
-            // Remember Me is kept in component state only; nothing is persisted.
-            onChange={(event) =>
-              setValues((current) => ({
-                ...current,
-                rememberMe: event.target.checked,
-              }))
-            }
             className="size-4 cursor-pointer rounded-[4px] border-[#1A1410]/30 accent-brand dark:border-white/20"
           />
           Remember me
@@ -124,52 +112,40 @@ export function SignInForm() {
 
         <button
           type="button"
-          onClick={() => {
-            setSuccessMessage(null)
-            setUiNotice(
-              "Password reset is not connected in this demo, so no reset email was sent."
-            )
-          }}
+          onClick={() =>
+            toast.info("Password reset is not connected yet.", {
+              className: toastStyle,
+            })
+          }
           className="rounded-sm text-xs font-medium text-brand underline-offset-4 transition-colors hover:text-brand-hover hover:underline focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:outline-none"
         >
           Forgot password?
         </button>
       </div>
 
-      {uiNotice ? (
-        <p
-          role="status"
-          className="rounded-2xl border border-[#1A1410]/10 bg-[#1A1410]/[0.03] px-4 py-3 text-xs leading-5 text-[#1A1410]/70 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/65"
-        >
-          {uiNotice}
-        </p>
-      ) : null}
-
-      {successMessage ? (
-        <div
-          role="status"
-          aria-live="polite"
-          className="flex items-start gap-3 rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3"
-        >
-          <Check
-            aria-hidden="true"
-            className="mt-0.5 size-4 shrink-0 text-brand"
-          />
-          <p className="text-xs leading-5 text-[#1A1410]/75 dark:text-white/70">
-            {successMessage}
-          </p>
-        </div>
-      ) : null}
-
       <Button
         type="submit"
-        className="group mt-3.5 h-11 w-full gap-2 rounded-full bg-brand bg-gradient-to-b from-orange-400 to-brand text-[13px] font-semibold tracking-[0.18em] text-[#0A0A0A] uppercase shadow-lg shadow-brand/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand/30 hover:brightness-105 focus-visible:ring-brand/50"
+        disabled={isLoading}
+        aria-busy={isLoading}
+        className="group mt-3.5 h-11 w-full gap-2 rounded-full bg-brand bg-gradient-to-b from-orange-400 to-brand text-[13px] font-semibold tracking-[0.18em] text-[#0A0A0A] uppercase shadow-lg shadow-brand/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand/30 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:ring-brand/50"
       >
-        Sign In
-        <ArrowRight
-          aria-hidden="true"
-          className="size-4 transition-transform group-hover:translate-x-0.5"
-        />
+        {isLoading ? (
+          <>
+            Signing in...
+            <LoaderCircle
+              aria-hidden="true"
+              className="size-4 animate-spin"
+            />
+          </>
+        ) : (
+          <>
+            Sign In
+            <ArrowRight
+              aria-hidden="true"
+              className="size-4 transition-transform group-hover:translate-x-0.5"
+            />
+          </>
+        )}
       </Button>
 
       <div className="mt-2.5 flex items-center gap-3">
@@ -189,13 +165,12 @@ export function SignInForm() {
       <Button
         type="button"
         variant="outline"
-        onClick={() => {
-          setSuccessMessage(null)
-          setUiNotice(
-            "Google sign-in is not connected in this demo, so no Google account was used."
-          )
-        }}
-        className="mt-1.5 h-11 w-full gap-3 rounded-full border-[#1A1410]/15 bg-transparent text-sm font-medium text-[#1A1410] hover:border-brand/50 hover:bg-brand/5 hover:text-[#1A1410] focus-visible:ring-brand/40 dark:border-white/15 dark:bg-transparent dark:text-white dark:hover:bg-white/5 dark:hover:text-white"
+        onClick={() =>
+          toast.info("Google sign-in is not connected yet.", {
+            className: toastStyle,
+          })
+        }
+        className="mt-1.5 h-11 w-full gap-3 rounded-full border-[#1A1410]/15 bg-transparent text-sm font-medium text-[#1A1410] transition-all hover:border-brand/50 hover:bg-brand/5 hover:text-[#1A1410] active:scale-[0.98] focus-visible:ring-brand/40 dark:border-white/15 dark:bg-transparent dark:text-white dark:hover:bg-white/5 dark:hover:text-white"
       >
         <GoogleIcon className="size-4" />
         Sign in with Google

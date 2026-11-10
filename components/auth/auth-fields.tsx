@@ -26,11 +26,12 @@ const errorClassName = "text-xs leading-5 text-destructive"
 
 type AuthFieldProps = {
   id: string
+  name: string
   label: string
   type?: "text" | "email"
-  value: string
-  onChange: (value: string) => void
-  onBlur?: () => void
+  defaultValue?: string
+  /** Used to clear a field error while the user types. */
+  onChange?: () => void
   error?: string
   placeholder?: string
   autoComplete?: string
@@ -38,11 +39,11 @@ type AuthFieldProps = {
 
 export function AuthField({
   id,
+  name,
   label,
   type = "text",
-  value,
+  defaultValue,
   onChange,
-  onBlur,
   error,
   placeholder,
   autoComplete,
@@ -54,11 +55,10 @@ export function AuthField({
       </label>
       <input
         id={id}
-        name={id}
+        name={name}
         type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onBlur={onBlur}
+        defaultValue={defaultValue}
+        onChange={onChange}
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
@@ -77,10 +77,11 @@ export function AuthField({
 
 type PasswordFieldProps = {
   id: string
+  name: string
   label: string
-  value: string
-  onChange: (value: string) => void
-  onBlur?: () => void
+  defaultValue?: string
+  /** Used to clear a field error while the user types. */
+  onChange?: () => void
   error?: string
   hint?: string
   placeholder?: string
@@ -91,10 +92,10 @@ type PasswordFieldProps = {
 
 export function PasswordField({
   id,
+  name,
   label,
-  value,
+  defaultValue,
   onChange,
-  onBlur,
   error,
   hint,
   placeholder,
@@ -117,11 +118,10 @@ export function PasswordField({
       <div className="relative">
         <input
           id={id}
-          name={id}
+          name={name}
           type={isVisible ? "text" : "password"}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onBlur={onBlur}
+          defaultValue={defaultValue}
+          onChange={onChange}
           placeholder={placeholder}
           autoComplete={autoComplete}
           required

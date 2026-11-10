@@ -1,0 +1,165 @@
+"use client"
+
+import { useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const labelClassName =
+  "text-[10px] font-semibold uppercase tracking-[0.24em] text-[#1A1410]/65 dark:text-white/70"
+
+// One placeholder color for every auth input, so no field looks brighter
+// than another. Both AuthField and PasswordField use inputClassName below.
+const placeholderClassName =
+  "placeholder:text-black/35 dark:placeholder:text-white/30"
+
+const inputClassName =
+  `h-11 w-full rounded-none border-0 border-b bg-transparent px-0 text-[15px] text-[#1A1410] transition-colors focus:border-brand focus:outline-none focus-visible:outline-none dark:text-white ${placeholderClassName}`
+
+const neutralBorder = "border-[#1A1410]/20 dark:border-white/15"
+const errorBorder =
+  "border-destructive focus:border-destructive dark:border-destructive"
+
+const hintClassName = "text-xs leading-5 text-[#1A1410]/60 dark:text-white/50"
+
+const errorClassName = "text-xs leading-5 text-destructive"
+
+type AuthFieldProps = {
+  id: string
+  label: string
+  type?: "text" | "email"
+  value: string
+  onChange: (value: string) => void
+  onBlur?: () => void
+  error?: string
+  placeholder?: string
+  autoComplete?: string
+}
+
+export function AuthField({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  onBlur,
+  error,
+  placeholder,
+  autoComplete,
+}: AuthFieldProps) {
+  return (
+    <div className="space-y-3.5">
+      <label htmlFor={id} className={labelClassName}>
+        {label}
+      </label>
+      <input
+        id={id}
+        name={id}
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        required
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        className={cn(inputClassName, error ? errorBorder : neutralBorder)}
+      />
+      {error ? (
+        <p id={`${id}-error`} role="alert" className={errorClassName}>
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+type PasswordFieldProps = {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  onBlur?: () => void
+  error?: string
+  hint?: string
+  placeholder?: string
+  autoComplete?: string
+  /** Extra hint id for text rendered outside the field. */
+  describedBy?: string
+}
+
+export function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  onBlur,
+  error,
+  hint,
+  placeholder,
+  autoComplete,
+  describedBy,
+}: PasswordFieldProps) {
+  const [isVisible, setIsVisible] = useState(false)
+
+  const describedById =
+    [hint ? `${id}-hint` : null, error ? `${id}-error` : null, describedBy]
+      .filter(Boolean)
+      .join(" ") || undefined
+
+  return (
+    <div className="space-y-3.5">
+      <label htmlFor={id} className={labelClassName}>
+        {label}
+      </label>
+
+      <div className="relative">
+        <input
+          id={id}
+          name={id}
+          type={isVisible ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onBlur={onBlur}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          required
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedById}
+          className={cn(
+            inputClassName,
+            "pr-10",
+            error ? errorBorder : neutralBorder
+          )}
+        />
+        <button
+          type="button"
+          onClick={() => setIsVisible((visible) => !visible)}
+          aria-label={isVisible ? "Hide password" : "Show password"}
+          aria-pressed={isVisible}
+          title={isVisible ? "Hide password" : "Show password"}
+          className="absolute inset-y-0 right-0 flex w-9 items-center justify-end rounded-sm text-[#1A1410]/40 transition-colors hover:text-brand focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:outline-none dark:text-white/40"
+        >
+          {isVisible ? (
+            <EyeOff aria-hidden="true" className="size-4" />
+          ) : (
+            <Eye aria-hidden="true" className="size-4" />
+          )}
+        </button>
+      </div>
+
+      {hint ? (
+        <p id={`${id}-hint`} className={hintClassName}>
+          {hint}
+        </p>
+      ) : null}
+
+      {error ? (
+        <p id={`${id}-error`} role="alert" className={errorClassName}>
+          {error}
+        </p>
+      ) : null}
+    </div>
+  )
+}

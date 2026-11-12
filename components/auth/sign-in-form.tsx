@@ -14,9 +14,6 @@ import { GoogleIcon } from "@/components/auth/google-icon"
 import { getEmailError } from "@/lib/auth-validation"
 import { authClient } from "@/lib/auth-client"
 
-const toastStyle =
-  "!border-[#C66B24]/60 !bg-[#21180F] !text-[#FFF4E8] !text-center [&_[data-title]]:!text-center [&_[data-title]]:!text-base [&_[data-description]]:!text-center [&_[data-description]]:!text-sm"
-
 export function SignInForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -34,12 +31,12 @@ export function SignInForm() {
     const emailError = getEmailError(email)
 
     if (emailError) {
-      toast.error(emailError, { className: toastStyle })
+      toast.error(emailError)
       return
     }
 
     if (!password) {
-      toast.error("Enter your password.", { className: toastStyle })
+      toast.error("Enter your password.")
       return
     }
 
@@ -52,22 +49,17 @@ export function SignInForm() {
       })
 
       if (error) {
-        toast.error(error.message || "Unable to sign in.", {
-          className: toastStyle,
-        })
+        toast.error(error.message || "Unable to sign in.")
         return
       }
 
       toast.success("Welcome back!", {
         description: "You have signed in successfully.",
-        className: toastStyle,
       })
 
       router.replace("/")
     } catch {
-      toast.error("Unable to sign in. Please try again.", {
-        className: toastStyle,
-      })
+      toast.error("Unable to sign in. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -113,9 +105,7 @@ export function SignInForm() {
         <button
           type="button"
           onClick={() =>
-            toast.info("Password reset is not connected yet.", {
-              className: toastStyle,
-            })
+            toast.info("Password reset is not connected yet.")
           }
           className="rounded-sm text-xs font-medium text-brand underline-offset-4 transition-colors hover:text-brand-hover hover:underline focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:outline-none"
         >
@@ -166,9 +156,7 @@ export function SignInForm() {
         type="button"
         variant="outline"
         onClick={() =>
-          toast.info("Google sign-in is not connected yet.", {
-            className: toastStyle,
-          })
+          toast.info("Google sign-in is not connected yet.")
         }
         className="mt-1.5 h-11 w-full gap-3 rounded-full border-[#1A1410]/15 bg-transparent text-sm font-medium text-[#1A1410] transition-all hover:border-brand/50 hover:bg-brand/5 hover:text-[#1A1410] active:scale-[0.98] focus-visible:ring-brand/40 dark:border-white/15 dark:bg-transparent dark:text-white dark:hover:bg-white/5 dark:hover:text-white"
       >

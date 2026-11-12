@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils"
 type AuthShellProps = {
   /** Sign-up flips the waves to the other side so the pages feel related but distinct. */
   mirrorBackground?: boolean
-  eyebrow: string
+  /** Some steps only need a heading, so the eyebrow is optional. */
+  eyebrow?: string
   title: ReactNode
   description: string
   children: ReactNode
@@ -68,19 +69,21 @@ export function AuthShell({
         className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_45%_55%_at_50%_50%,rgba(250,247,242,0.9)_0%,rgba(250,247,242,0.35)_60%,transparent_100%)] dark:hidden"
       />
 
-      <section className="relative w-full max-w-[35rem] rounded-[2rem] border border-[#1A1410]/10 bg-[#FFFDF9] px-10 py-10 shadow-[0_0_80px_-20px_rgba(249,115,22,0.35)] ring-1 ring-brand/20 backdrop-blur-xl dark:border-white/10 dark:bg-[#120D0A]">
+      <section className="relative w-full max-w-[35rem] rounded-[2rem] border border-[#1A1410]/10 bg-[#FFFDF9] px-6 py-8 shadow-[0_0_80px_-20px_rgba(249,115,22,0.35)] ring-1 ring-brand/20 backdrop-blur-xl sm:px-8 sm:py-10 dark:border-white/10 dark:bg-[#120D0A]">
         <div className="text-center">
-          <p className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.32em] text-brand uppercase">
-            <span
-              aria-hidden="true"
-              className="size-1.5 rounded-full bg-brand"
-            />
-            {eyebrow}
-          </p>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-balance text-[#1A1410] dark:text-white">
+          {eyebrow ? (
+            <p className="inline-flex items-center gap-2 text-[10px] font-semibold tracking-[0.32em] text-brand uppercase">
+              <span
+                aria-hidden="true"
+                className="size-1.5 rounded-full bg-brand"
+              />
+              {eyebrow}
+            </p>
+          ) : null}
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-balance text-[#1A1410] sm:text-3xl dark:text-white">
             {title}
           </h1>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#1A1410]/65 dark:text-white/60">
+          <p className="mx-auto mt-2.5 max-w-md text-sm leading-6 text-[#1A1410]/65 dark:text-white/60">
             {description}
           </p>
         </div>

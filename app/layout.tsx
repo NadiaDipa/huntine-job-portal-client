@@ -33,7 +33,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Navbar />
           {children}
-          <Toaster position="top-center" />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

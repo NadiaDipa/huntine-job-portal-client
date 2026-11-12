@@ -6,15 +6,14 @@ import { Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const labelClassName =
-  "text-[10px] font-semibold uppercase tracking-[0.24em] text-[#1A1410]/65 dark:text-white/70"
+  "text-[11px] font-semibold uppercase tracking-[0.16em] text-[#1A1410]/65 dark:text-white/65"
 
 // One placeholder color for every auth input, so no field looks brighter
 // than another. Both AuthField and PasswordField use inputClassName below.
 const placeholderClassName =
   "placeholder:text-black/35 dark:placeholder:text-white/30"
 
-const inputClassName =
-  `h-11 w-full rounded-none border-0 border-b bg-transparent px-0 text-[15px] text-[#1A1410] transition-colors focus:border-brand focus:outline-none focus-visible:outline-none dark:text-white ${placeholderClassName}`
+const inputClassName = `h-11 w-full rounded-none border-0 border-b bg-transparent px-0 text-[15px] text-[#1A1410] transition-colors focus:border-brand focus:outline-none focus-visible:outline-none dark:text-white ${placeholderClassName}`
 
 const neutralBorder = "border-[#1A1410]/20 dark:border-white/15"
 const errorBorder =
@@ -49,7 +48,7 @@ export function AuthField({
   autoComplete,
 }: AuthFieldProps) {
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-2">
       <label htmlFor={id} className={labelClassName}>
         {label}
       </label>
@@ -110,7 +109,7 @@ export function PasswordField({
       .join(" ") || undefined
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-2">
       <label htmlFor={id} className={labelClassName}>
         {label}
       </label>

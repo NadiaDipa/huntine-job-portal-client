@@ -39,9 +39,6 @@ const navLinks = [
   { label: "For Employers", href: "/employers" },
 ]
 
-const toastStyle =
-  "!border-[#C66B24]/60 !bg-[#21180F] !text-[#FFF4E8] !text-center [&_[data-title]]:!text-center [&_[data-description]]:!text-center"
-
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
 
@@ -75,7 +72,7 @@ function ThemeToggle() {
 type ProfileMenuProps = {
   name: string
   isLoggingOut: boolean
-  onLogout: () => void
+  onLogout: () => Promise<boolean>
   onCloseSheet?: () => void
   mobile?: boolean
 }
@@ -122,9 +119,7 @@ function ProfileMenu({
     setIsOpen(false)
     onCloseSheet?.()
 
-    toast.info(`${feature} page is coming soon.`, {
-      className: toastStyle,
-    })
+    toast.info(`${feature} page is coming soon.`)
   }
 
   return (
@@ -222,9 +217,13 @@ function ProfileMenu({
               type="button"
               role="menuitem"
               disabled={isLoggingOut}
-              onClick={() => {
-                setIsOpen(false)
-                onLogout()
+              onClick={async () => {
+                const didSignOut = await onLogout()
+
+                if (didSignOut) {
+                  setIsOpen(false)
+                  onCloseSheet?.()
+                }
               }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400 transition-colors hover:bg-red-400/10 disabled:opacity-50"
             >
@@ -258,6 +257,7 @@ export function Navbar() {
 
   const [open, setOpen] = React.useState(false)
   const [isLoggingOut, setIsLoggingOut] = React.useState(false)
+  const isLoggingOutRef = React.useRef(false)
 
   const { data: session, isPending } = authClient.useSession()
 
@@ -266,33 +266,38 @@ export function Navbar() {
   }
 
   async function handleLogout() {
-    if (isLoggingOut) return
+    if (isLoggingOutRef.current) return false
 
+    isLoggingOutRef.current = true
     setIsLoggingOut(true)
 
     try {
-      const { error } = await authClient.signOut()
+      let didSignOut = false
 
-      if (error) {
-        toast.error(error.message || "Unable to sign out.", {
-          className: toastStyle,
-        })
-        return
-      }
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: () => {
+            didSignOut = true
 
-      closeMenu()
+            toast.success("Signed out successfully!", {
+              description: "You have been safely logged out.",
+            })
 
-      toast.success("Signed out successfully.", {
-        className: toastStyle,
+            router.replace("/sign-in")
+            router.refresh()
+          },
+          onError: () => {
+            toast.error("Unable to sign out. Please try again.")
+          },
+        },
       })
 
-      router.replace("/")
-      router.refresh()
+      return didSignOut
     } catch {
-      toast.error("Unable to sign out. Please try again.", {
-        className: toastStyle,
-      })
+      toast.error("Unable to sign out. Please try again.")
+      return false
     } finally {
+      isLoggingOutRef.current = false
       setIsLoggingOut(false)
     }
   }

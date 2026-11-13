@@ -211,7 +211,7 @@ function ProfileMenu({
             </button>
           </div>
 
-          {/* Logout */}
+          {/* Sign Out */}
           <div className="border-t border-white/10 pt-2">
             <button
               type="button"
@@ -233,7 +233,7 @@ function ProfileMenu({
                 <LogOut className="size-4" />
               )}
 
-              {isLoggingOut ? "Signing out..." : "Log Out"}
+              {isLoggingOut ? "Signing out..." : "Sign Out"}
             </button>
           </div>
         </div>

@@ -64,13 +64,17 @@ export function SignUpForm({ selectedRole, onBack }: SignUpFormProps) {
       return
     }
 
+    if (!selectedRole) {
+      toast.error("Select your role to continue.")
+      return
+    }
+
     try {
-      // The selected role stays in UI state for now: role assignment is not
-      // sent to Better Auth until it can be assigned securely on the server.
       const { error } = await authClient.signUp.email({
         name,
         email,
         password,
+        role: selectedRole,
       })
 
       if (error) {

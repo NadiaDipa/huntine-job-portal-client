@@ -21,6 +21,7 @@ import {
 import { toast } from "sonner"
 
 import { authClient } from "@/lib/auth-client"
+import { isUserRole } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 import {
@@ -31,13 +32,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-
-const navLinks = [
-  { label: "Browse Jobs", href: "/jobs" },
-  { label: "Companies", href: "/companies" },
-  { label: "Pricing", href: "/pricing" },
-  { label: "For Employers", href: "/employers" },
-]
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -71,6 +65,7 @@ function ThemeToggle() {
 
 type ProfileMenuProps = {
   name: string
+  dashboardHref: string
   isLoggingOut: boolean
   onLogout: () => Promise<boolean>
   onCloseSheet?: () => void
@@ -79,6 +74,7 @@ type ProfileMenuProps = {
 
 function ProfileMenu({
   name,
+  dashboardHref,
   isLoggingOut,
   onLogout,
   onCloseSheet,
@@ -159,7 +155,7 @@ function ProfileMenu({
           role="menu"
           className={cn(
             "absolute right-0 top-[calc(100%+10px)] z-[60] w-60 overflow-hidden rounded-2xl border border-white/10 bg-[#17130F] p-2 shadow-xl shadow-black/30",
-            mobile && "left-0 right-0 top-[calc(100%+8px)] w-full",
+            mobile && "left-0 right-0 top-auto bottom-[calc(100%+8px)] w-full",
           )}
         >
           {/* Profile Information */}
@@ -190,15 +186,18 @@ function ProfileMenu({
               My Profile
             </button>
 
-            <button
-              type="button"
+            <Link
+              href={dashboardHref}
               role="menuitem"
-              onClick={() => handleComingSoon("Dashboard")}
+              onClick={() => {
+                setIsOpen(false)
+                onCloseSheet?.()
+              }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/75 transition-colors hover:bg-white/5 hover:text-brand"
             >
               <LayoutDashboard className="size-4" />
               Dashboard
-            </button>
+            </Link>
 
             <button
               type="button"
@@ -261,6 +260,17 @@ export function Navbar() {
 
   const { data: session, isPending } = authClient.useSession()
 
+  const role = isUserRole(session?.user?.role) ? session.user.role : "seeker"
+  const dashboardHref = `/dashboard/${role}`
+
+  const NAV_LINKS = [
+    { label: "Browse Jobs", href: "/jobs" },
+    { label: "Companies", href: "/companies" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "For Employers", href: "/employers" },
+    { label: "Dashboard", href: dashboardHref },
+  ] as const
+
   function closeMenu() {
     setOpen(false)
   }
@@ -306,6 +316,11 @@ export function Navbar() {
     return pathname === href || pathname.startsWith(`${href}/`)
   }
 
+  // The dashboard uses its own full-height sidebar layout.
+  if (pathname.startsWith("/dashboard")) {
+    return null
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full pt-4">
       <div className="mx-auto w-full max-w-7xl px-6 lg:px-8">
@@ -337,8 +352,9 @@ export function Navbar() {
             aria-label="Main navigation"
             className="hidden items-center gap-2 justify-self-center lg:flex"
           >
-            {navLinks.map((link) => {
+            {NAV_LINKS.map((link) => {
               const active = isActiveLink(link.href)
+              const isDashboard = link.href.startsWith("/dashboard")
 
               return (
                 <Link
@@ -347,19 +363,26 @@ export function Navbar() {
                   aria-current={active ? "page" : undefined}
                   className={cn(
                     "group relative rounded-full px-3 py-1.5 text-sm font-medium transition-colors duration-200 hover:bg-white/10 hover:text-white",
-                    active ? "text-white" : "text-white/70",
+                    isDashboard
+                      ? "flex items-center gap-1.5 border border-brand/30 bg-brand/10 text-brand hover:border-brand/50 hover:bg-brand/15 hover:text-brand"
+                      : active
+                        ? "text-white"
+                        : "text-white/70",
                   )}
                 >
+                  {isDashboard && <LayoutDashboard className="size-3.5" />}
                   {link.label}
 
-                  <span
-                    className={cn(
-                      "absolute inset-x-3 -bottom-0.5 h-px rounded-full bg-brand transition-opacity duration-200",
-                      active
-                        ? "opacity-100"
-                        : "opacity-0 group-hover:opacity-100",
-                    )}
-                  />
+                  {!isDashboard && (
+                    <span
+                      className={cn(
+                        "absolute inset-x-3 -bottom-0.5 h-px rounded-full bg-brand transition-opacity duration-200",
+                        active
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100",
+                      )}
+                    />
+                  )}
                 </Link>
               )
             })}
@@ -374,6 +397,7 @@ export function Navbar() {
             ) : session ? (
               <ProfileMenu
                 name={session.user.name}
+                dashboardHref={dashboardHref}
                 isLoggingOut={isLoggingOut}
                 onLogout={handleLogout}
               />
@@ -440,8 +464,9 @@ export function Navbar() {
                 aria-label="Mobile navigation"
                 className="flex flex-1 flex-col gap-1 overflow-y-auto p-4"
               >
-                {navLinks.map((link) => {
+                {NAV_LINKS.map((link) => {
                   const active = isActiveLink(link.href)
+                  const isDashboard = link.href.startsWith("/dashboard")
 
                   return (
                     <Link
@@ -451,15 +476,19 @@ export function Navbar() {
                       aria-current={active ? "page" : undefined}
                       className={cn(
                         "rounded-xl px-3 py-3 text-base transition-colors duration-200",
-                        active
-                          ? "text-white"
-                          : "text-white/70 hover:bg-white/5 hover:text-white",
+                        isDashboard
+                          ? "flex items-center gap-2 border border-brand/30 bg-brand/10 text-brand"
+                          : active
+                            ? "text-white"
+                            : "text-white/70 hover:bg-white/5 hover:text-white",
                       )}
                     >
+                      {isDashboard && <LayoutDashboard className="size-4" />}
+
                       <span className="relative">
                         {link.label}
 
-                        {active && (
+                        {active && !isDashboard && (
                           <span className="absolute inset-x-0 -bottom-1 h-px rounded-full bg-brand" />
                         )}
                       </span>
@@ -480,6 +509,7 @@ export function Navbar() {
                 ) : session ? (
                   <ProfileMenu
                     name={session.user.name}
+                    dashboardHref={dashboardHref}
                     isLoggingOut={isLoggingOut}
                     onLogout={handleLogout}
                     onCloseSheet={closeMenu}

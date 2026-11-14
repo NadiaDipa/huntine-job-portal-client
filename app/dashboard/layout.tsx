@@ -1,16 +1,12 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { DashboardSidebar } from "../components/DashboardSidebar"
-
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-   return (
-    <SidebarProvider>
-      <DashboardSidebar/>
-      <main>
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
-  )
+/**
+ * Intentionally a pass-through. Each role layout performs the role check and
+ * only mounts the DashboardShell after access is granted, which keeps the
+ * sidebar hidden on the access-denied screen.
+ */
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return children
 }
-
-export default DashboardLayout

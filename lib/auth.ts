@@ -17,6 +17,7 @@ export const auth = betterAuth({
         required: true,
         defaultValue: "seeker",
         input: true,
+        returned: true,
         validator: {
           input: userRoleSchema,
         },

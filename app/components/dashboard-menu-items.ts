@@ -89,7 +89,7 @@ export const menuItemsByRole: DashboardMenuItemsByRole = {
     },
     {
       name: "Add Job",
-      url: "/dashboard/recruiter/post-job",
+      url: "/dashboard/recruiter/jobs/new",
       icon: SquarePlus,
     },
     {

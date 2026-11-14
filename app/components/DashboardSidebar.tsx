@@ -40,6 +40,14 @@ function isActivePath(pathname: string, url: string) {
   return pathname === url || pathname.startsWith(`${url}/`)
 }
 
+// Picks the most specific matching item so nested routes like
+// /dashboard/recruiter/jobs/new only light up "Add Job", not "Manage Jobs".
+function getActiveUrl(pathname: string, items: DashboardMenuItem[]) {
+  const matches = items.filter((item) => isActivePath(pathname, item.url))
+
+  return matches.sort((a, b) => b.url.length - a.url.length)[0]?.url
+}
+
 function getInitials(name: string) {
   return (
     name
@@ -57,6 +65,7 @@ const menuButtonClassName =
 
 function MenuList({ items }: { items: DashboardMenuItem[] }) {
   const pathname = usePathname()
+  const activeUrl = getActiveUrl(pathname, items)
 
   return (
     <SidebarMenu className="gap-1">
@@ -64,7 +73,7 @@ function MenuList({ items }: { items: DashboardMenuItem[] }) {
         <SidebarMenuItem key={item.name}>
           <SidebarMenuButton
             render={<Link href={item.url} />}
-            isActive={isActivePath(pathname, item.url)}
+            isActive={item.url === activeUrl}
             tooltip={item.name}
             className={menuButtonClassName}
           >

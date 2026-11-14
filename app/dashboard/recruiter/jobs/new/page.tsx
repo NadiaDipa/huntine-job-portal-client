@@ -1,11 +1,13 @@
-import React from 'react'
+import type { Metadata } from "next"
 
-const NewJobPage = () => {
-  return (
-    <div>
-      <h2>New Job Page</h2>
-    </div>
-  )
+import { NewJobForm } from "@/app/components/NewJobForm"
+
+export const metadata: Metadata = {
+  title: "Post a new job | Huntine",
+  description:
+    "Create a job posting with role details, compensation and requirements.",
 }
 
-export default NewJobPage
+export default function NewJobPage() {
+  return <NewJobForm />
+}

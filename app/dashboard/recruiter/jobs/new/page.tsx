@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next"
 
 import { NewJobForm } from "@/app/components/NewJobForm"

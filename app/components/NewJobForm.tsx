@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -49,6 +50,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
+import { createJob } from "@/lib/actions/jobs"
 
 /* -------------------------------------------------------------------------- */
 /*  Options                                                                   */
@@ -56,7 +58,7 @@ import { cn } from "@/lib/utils"
 
 type JobType = "full-time" | "part-time" | "contract" | "internship"
 
-const JOB_TYPES: {
+export const JOB_TYPES: {
   value: JobType
   label: string
   hint: string
@@ -121,7 +123,7 @@ function findFrequency(value: string) {
   return FREQUENCIES.find((item) => item.value === value) ?? FREQUENCIES[0]
 }
 
-type JobPayload = {
+export type JobPayload = {
   title: string
   company: string
   category: string
@@ -289,10 +291,6 @@ export function NewJobForm() {
   const [lastPayload, setLastPayload] = useState<JobPayload | null>(null)
   const [copied, setCopied] = useState(false)
 
-  /**
-   * Collects every field into one object — this is the shape a real API will
-   * receive, and what gets printed in the console while there is no backend.
-   */
   function collectPayload(): JobPayload {
     const toLines = (value: string) =>
       value
@@ -371,9 +369,8 @@ export function NewJobForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    // Collect and print first, so something always lands in the console even
-    // when the form is incomplete.
     const payload = collectPayload()
+
     console.log("%c[new-job] submit clicked", "color:#FF8A33;font-weight:700", payload)
 
     const nextErrors = validate()
@@ -385,12 +382,14 @@ export function NewJobForm() {
       console.warn("[new-job] validation failed", nextErrors)
 
       document.getElementById(errorFields[0])?.focus()
+
       toast.error(
         `${errorFields.length} field${errorFields.length === 1 ? "" : "s"} need attention`,
         {
           description: Object.values(nextErrors).slice(0, 2).join(" "),
         }
       )
+
       return
     }
 
@@ -401,25 +400,35 @@ export function NewJobForm() {
       "color:#22c55e;font-weight:700",
       payload
     )
-    console.log("[new-job] payload (JSON)\n" + JSON.stringify(payload, null, 2))
 
-    // Mirror the payload into the page + a global, so the data is visible even
-    // if the browser console is filtered or was opened late.
+    console.log(
+      "[new-job] payload (JSON)\n" + JSON.stringify(payload, null, 2)
+    )
+
     setLastPayload(payload)
     setCopied(false)
     window.__lastJobPayload = payload
 
-    
-    // await fetch("/api/jobs", { method: "POST", body: JSON.stringify(payload) })
+    try {
+      const result = await createJob(payload)
 
+      console.log("createJob result:", result)
 
+      toast.success("Job published!", {
+        description: `${payload.title} has been published successfully.`,
+      })
+    } catch (error) {
+      console.error("Failed to create job:", error)
 
-    await new Promise((resolve) => setTimeout(resolve, 600))
-
-    setIsSubmitting(false)
-    toast.success("Job published!", {
-      description: `${payload.title} — payload shown below and in the console.`,
-    })
+      toast.error("Could not publish job", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong.",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   function fillSampleData() {
@@ -764,8 +773,6 @@ export function NewJobForm() {
                   type="date"
                   value={deadline}
                   onFocus={(event) => {
-                    // Set the lower bound on first interaction so the
-                    // server-rendered HTML never depends on "today".
                     if (!event.currentTarget.min) {
                       event.currentTarget.min = new Date().toISOString().slice(0, 10)
                     }

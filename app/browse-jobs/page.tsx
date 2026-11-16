@@ -2,56 +2,37 @@ import type { Metadata } from "next"
 
 import { BrowseJobsFilters } from "@/app/components/BrowseJobsFilters"
 import { BrowseJobsSearch } from "@/app/components/BrowseJobsSearch"
+import { getJobs } from "@/app/api/jobs"
 
 export const metadata: Metadata = {
   title: "Browse Jobs | Huntine",
   description: "Search open roles and narrow them down with filters.",
 }
 
-type JobPreview = {
-  title: string
-  company: string
-  location: string
-}
-
-// Static preview data. Search and filtering are not wired up yet.
-const JOBS: JobPreview[] = [
-  {
-    title: "Backend Engineer",
-    company: "HirePulse Labs",
-    location: "London, UK",
-  },
-  {
-    title: "Frontend Developer",
-    company: "TechNova Solutions",
-    location: "New York, USA (Remote)",
-  },
-  {
-    title: "Backend Developer",
-    company: "CloudBridge Technologies",
-    location: "San Francisco, USA (Remote)",
-  },
-  {
-    title: "UI/UX Designer",
-    company: "PixelCraft Studio",
-    location: "Austin, USA",
-  },
-  {
-    title: "Full Stack Developer",
-    company: "Vertex Labs",
-    location: "Berlin, Germany (Remote)",
-  },
-  {
-    title: "Product Designer",
-    company: "NorthStar Studio",
-    location: "Toronto, Canada",
-  },
-]
-
 const panelClassName =
   "rounded-xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(16,10,6,0.03)] dark:border-white/[0.06] dark:bg-[#141110] dark:shadow-none"
 
-export default function BrowseJobsPage() {
+export default async function BrowseJobsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    [key: string]: string | string[] | undefined
+  }>
+}) {
+  const search = await searchParams
+
+  const urlSearch = new URLSearchParams()
+
+  Object.entries(search).forEach(([key, value]) => {
+    if (typeof value === "string") {
+      urlSearch.set(key, value)
+    }
+  })
+
+  const query = urlSearch.toString()
+
+  const jobs = await getJobs(query)
+
   return (
     <main className="min-h-svh bg-[#FAF7F2] pb-16 dark:bg-[#0A0908]">
       <div className="mx-auto w-full max-w-6xl px-4 pt-8 sm:px-6 lg:px-8 lg:pt-10">
@@ -67,12 +48,12 @@ export default function BrowseJobsPage() {
               id="browse-jobs-results-heading"
               className="text-xl font-semibold tracking-tight text-[#1A1410] dark:text-white"
             >
-              Found 25 Professional Jobs
+              Found {jobs.length} Professional Jobs
             </h2>
 
             <ul className="mt-4 space-y-3">
-              {JOBS.map((job) => (
-                <li key={job.title}>
+              {jobs.map((job) => (
+                <li key={job._id ?? job.id}>
                   <article
                     className={`${panelClassName} px-5 py-4 transition-colors hover:border-black/10 dark:hover:border-white/10`}
                   >

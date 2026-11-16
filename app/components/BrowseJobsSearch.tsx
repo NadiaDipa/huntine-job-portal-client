@@ -6,6 +6,7 @@ import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 type BrowseJobsSearchProps = {
   className?: string
@@ -13,14 +14,26 @@ type BrowseJobsSearchProps = {
 
 export function BrowseJobsSearch({ className }: BrowseJobsSearchProps) {
   const [keyword, setKeyword] = useState("")
+  const router = useRouter();
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const formData = new FormData(event.currentTarget)
+    const data = Object.fromEntries(formData.entries())
+    console.log(data)
+    const search = data.searchField
+
+    const params = new URLSearchParams()
+    params.set("search", search as string)
+
+    router.push(`/browse-jobs?${params.toString()}`)
+
+  }
 
   return (
     <form
       role="search"
-      onSubmit={(event) => {
-        event.preventDefault()
-        console.log(keyword)
-      }}
+      onSubmit={handleSubmit}
       className={cn(
         "flex flex-col gap-2 rounded-xl border border-black/[0.06] bg-white p-2 shadow-[0_1px_2px_rgba(16,10,6,0.03)] sm:flex-row sm:items-center dark:border-white/[0.06] dark:bg-[#141110] dark:shadow-none",
         className
@@ -37,6 +50,7 @@ export function BrowseJobsSearch({ className }: BrowseJobsSearchProps) {
         </label>
         <Input
           id="browse-jobs-keyword"
+          name="searchField"
           type="text"
           placeholder="Search by job title, keywords..."
           value={keyword}

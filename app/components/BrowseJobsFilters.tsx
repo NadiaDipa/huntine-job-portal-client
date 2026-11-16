@@ -1,5 +1,8 @@
+"use client"
+
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { useRouter, useSearchParams } from "next/navigation"
 
 type FilterOption = {
   label: string
@@ -32,9 +35,11 @@ function toFieldId(section: string, label: string) {
 function FilterSection({
   title,
   options,
+  handleCheckboxChange,
 }: {
   title: string
   options: FilterOption[]
+  handleCheckboxChange: (name: string, value: boolean) => void
 }) {
   return (
     <section>
@@ -55,8 +60,12 @@ function FilterSection({
                 <span className="flex min-w-0 items-center gap-2.5">
                   <Checkbox
                     id={id}
+                    onCheckedChange={(checked) =>
+                      handleCheckboxChange(option.label, checked === true)
+                    }
                     className="size-4 rounded-[3px] border-black/15 bg-transparent dark:border-white/15 dark:bg-white/[0.03] data-checked:border-[#1A1410] data-checked:bg-[#1A1410] data-checked:text-white dark:data-checked:border-white dark:data-checked:bg-white dark:data-checked:text-[#0A0807]"
                   />
+
                   <span id={`${id}-label`} className="truncate">
                     {option.label}
                   </span>
@@ -75,6 +84,26 @@ function FilterSection({
 }
 
 export function BrowseJobsFilters({ className }: { className?: string }) {
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+
+
+  const handleCheckboxChange = (name: string, value: boolean) => {
+    console.log(name, value)
+
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (value) {
+      params.set(name, "true")
+    } else {
+      params.delete(name)
+    }
+
+    router.push(`/browse-jobs?${params.toString()}`)
+  }
+
   return (
     <aside
       aria-label="Job filters"
@@ -88,8 +117,17 @@ export function BrowseJobsFilters({ className }: { className?: string }) {
       </h2>
 
       <div className="mt-6 space-y-7">
-        <FilterSection title="Job Type" options={JOB_TYPE_OPTIONS} />
-        <FilterSection title="Job Category" options={JOB_CATEGORY_OPTIONS} />
+        <FilterSection
+          title="Job Type"
+          options={JOB_TYPE_OPTIONS}
+          handleCheckboxChange={handleCheckboxChange}
+        />
+
+        <FilterSection
+          title="Job Category"
+          options={JOB_CATEGORY_OPTIONS}
+          handleCheckboxChange={handleCheckboxChange}
+        />
       </div>
     </aside>
   )

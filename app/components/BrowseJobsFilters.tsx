@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,8 +11,8 @@ type FilterOption = {
 }
 
 const JOB_TYPE_OPTIONS: FilterOption[] = [
-  { label: "Full-Time", count: 17 },
-  { label: "Part-Time", count: 4 },
+  { label: "Full-time", count: 17 },
+  { label: "Part-time", count: 4 },
   { label: "Contract", count: 2 },
   { label: "Internship", count: 2 },
 ]
@@ -35,11 +36,19 @@ function toFieldId(section: string, label: string) {
 function FilterSection({
   title,
   options,
+  filterKey,
+  selectedValue,
   handleCheckboxChange,
 }: {
   title: string
   options: FilterOption[]
-  handleCheckboxChange: (name: string, value: boolean) => void
+  filterKey: string
+  selectedValue: string | null
+  handleCheckboxChange: (
+    key: string,
+    name: string,
+    value: boolean
+  ) => void
 }) {
   return (
     <section>
@@ -60,8 +69,13 @@ function FilterSection({
                 <span className="flex min-w-0 items-center gap-2.5">
                   <Checkbox
                     id={id}
+                    checked={selectedValue === option.label}
                     onCheckedChange={(checked) =>
-                      handleCheckboxChange(option.label, checked === true)
+                      handleCheckboxChange(
+                        filterKey,
+                        option.label,
+                        checked === true
+                      )
                     }
                     className="size-4 rounded-[3px] border-black/15 bg-transparent dark:border-white/15 dark:bg-white/[0.03] data-checked:border-[#1A1410] data-checked:bg-[#1A1410] data-checked:text-white dark:data-checked:border-white dark:data-checked:bg-white dark:data-checked:text-[#0A0807]"
                   />
@@ -83,22 +97,25 @@ function FilterSection({
   )
 }
 
-export function BrowseJobsFilters({ className }: { className?: string }) {
+export function BrowseJobsFilters({
+  className,
+}: {
+  className?: string
+}) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-
-
-  const handleCheckboxChange = (name: string, value: boolean) => {
-    console.log(name, value)
-
+  const handleCheckboxChange = (
+    key: string,
+    name: string,
+    value: boolean
+  ) => {
     const params = new URLSearchParams(searchParams.toString())
 
     if (value) {
-      params.set(name, "true")
+      params.set(key, name)
     } else {
-      params.delete(name)
+      params.delete(key)
     }
 
     router.push(`/browse-jobs?${params.toString()}`)
@@ -120,12 +137,16 @@ export function BrowseJobsFilters({ className }: { className?: string }) {
         <FilterSection
           title="Job Type"
           options={JOB_TYPE_OPTIONS}
+          filterKey="jobType"
+          selectedValue={searchParams.get("jobType")}
           handleCheckboxChange={handleCheckboxChange}
         />
 
         <FilterSection
           title="Job Category"
           options={JOB_CATEGORY_OPTIONS}
+          filterKey="category"
+          selectedValue={searchParams.get("category")}
           handleCheckboxChange={handleCheckboxChange}
         />
       </div>

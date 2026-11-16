@@ -264,7 +264,7 @@ export function Navbar() {
   const dashboardHref = `/dashboard/${role}`
 
   const NAV_LINKS = [
-    { label: "Browse Jobs", href: "/jobs" },
+    { label: "Browse Jobs", href: "/browse-jobs" },
     { label: "Companies", href: "/companies" },
     { label: "Pricing", href: "/pricing" },
     { label: "For Employers", href: "/employers" },

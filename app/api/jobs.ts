@@ -5,8 +5,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000"
 
 export type UpdateJobPayload = Omit<JobPayload, "createdAt">
 
-export const getJobs = async (): Promise<JobDocument[]> => {
-  const res = await fetch(`${BASE_URL}/jobs`, { cache: "no-store" })
+
+export const getJobs = async (query = ''): Promise<JobDocument[]> => {
+  const res = await fetch(`${BASE_URL}/jobs?${query}`, {
+    cache: "no-store",
+  })
 
   if (!res.ok) {
     throw new Error("Failed to load jobs")

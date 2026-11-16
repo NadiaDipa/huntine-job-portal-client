@@ -103,12 +103,9 @@ const CURRENCIES = [
 
 type Frequency = "hour" | "day" | "month" | "year"
 
-const FREQUENCIES: { value: Frequency; label: string; suffix: string }[] = [
-  { value: "hour", label: "Per hour", suffix: "/hr" },
-  { value: "day", label: "Per day", suffix: "/day" },
-  { value: "month", label: "Per month", suffix: "/mo" },
-  { value: "year", label: "Per year", suffix: "/yr" },
-]
+// Salary period is no longer selectable. Pay is treated as a monthly range.
+const SALARY_FREQUENCY: Frequency = "month"
+const SALARY_PERIOD_SUFFIX = "/mo"
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -117,10 +114,6 @@ const MONTHS = [
 
 function findCurrency(value: string) {
   return CURRENCIES.find((item) => item.value === value) ?? CURRENCIES[0]
-}
-
-function findFrequency(value: string) {
-  return FREQUENCIES.find((item) => item.value === value) ?? FREQUENCIES[0]
 }
 
 export type JobPayload = {
@@ -281,7 +274,6 @@ export function NewJobForm() {
   const [minSalary, setMinSalary] = useState("")
   const [maxSalary, setMaxSalary] = useState("")
   const [currency, setCurrency] = useState("USD")
-  const [frequency, setFrequency] = useState<Frequency>("hour")
 
   const [responsibilities, setResponsibilities] = useState("")
   const [qualifications, setQualifications] = useState("")
@@ -299,7 +291,6 @@ export function NewJobForm() {
         .filter(Boolean)
 
     const currencyMeta = findCurrency(currency)
-    const frequencyMeta = findFrequency(frequency)
 
     return {
       title: title.trim(),
@@ -314,8 +305,8 @@ export function NewJobForm() {
         currency,
         min: Number(minSalary),
         max: Number(maxSalary),
-        frequency,
-        label: `${currencyMeta.symbol}${minSalary}–${maxSalary}${frequencyMeta.suffix}`,
+        frequency: SALARY_FREQUENCY,
+        label: `${currencyMeta.symbol}${minSalary}–${maxSalary}${SALARY_PERIOD_SUFFIX}`,
       },
       responsibilities: toLines(responsibilities),
       qualifications: toLines(qualifications),
@@ -447,7 +438,6 @@ export function NewJobForm() {
     setMinSalary("45")
     setMaxSalary("70")
     setCurrency("USD")
-    setFrequency("hour")
     setResponsibilities(
       "Build and ship features for the hiring platform\nReview pull requests and mentor junior engineers\nCollaborate with design and product on new flows"
     )
@@ -492,7 +482,6 @@ export function NewJobForm() {
   /* ----------------------------- preview data ----------------------------- */
 
   const currencyMeta = findCurrency(currency)
-  const frequencyMeta = findFrequency(frequency)
 
   function formatMoney(raw: string) {
     const value = Number(raw)
@@ -785,35 +774,6 @@ export function NewJobForm() {
                   hint="Applications close at 11:59 PM on this date."
                 />
 
-                <div className="space-y-2">
-                  <Label htmlFor="frequency" className={labelClassName}>
-                    Pay frequency
-                  </Label>
-                  <Select
-                    items={FREQUENCIES.map((item) => ({
-                      value: item.value,
-                      label: item.label,
-                    }))}
-                    value={frequency}
-                    onValueChange={(value) => setFrequency((value ?? "hour") as Frequency)}
-                  >
-                    <SelectTrigger
-                      id="frequency"
-                      className="h-11 w-full rounded-xl border-black/10 bg-[#FAF7F2]/70 px-3.5 text-sm dark:border-white/10 dark:bg-white/5"
-                    >
-                      <SelectValue placeholder="Per hour" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FREQUENCIES.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className={hintClassName}>Used for the salary label.</p>
-                </div>
-
                 <div className="grid gap-4 sm:col-span-2 sm:grid-cols-[130px_minmax(0,1fr)_minmax(0,1fr)]">
                   <div className="space-y-2">
                     <Label htmlFor="currency" className={labelClassName}>
@@ -1045,7 +1005,7 @@ export function NewJobForm() {
                       <span className="font-semibold text-[#1A1410] dark:text-white">
                         {salaryLabel}
                         <span className="font-normal text-[#1A1410]/45 dark:text-white/35">
-                          {frequencyMeta.suffix}
+                          {SALARY_PERIOD_SUFFIX}
                         </span>
                       </span>
                     ) : (

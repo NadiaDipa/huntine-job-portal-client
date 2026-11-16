@@ -102,12 +102,9 @@ const CURRENCIES = [
   { value: "INR", label: "INR — Rupee", symbol: "₹" },
 ]
 
-const FREQUENCIES: { value: Frequency; label: string; suffix: string }[] = [
-  { value: "hour", label: "Per hour", suffix: "/hr" },
-  { value: "day", label: "Per day", suffix: "/day" },
-  { value: "month", label: "Per month", suffix: "/mo" },
-  { value: "year", label: "Per year", suffix: "/yr" },
-]
+// Salary period is no longer selectable. Pay is treated as a monthly range.
+const SALARY_FREQUENCY: Frequency = "month"
+const SALARY_PERIOD_SUFFIX = "/mo"
 
 const labelClassName =
   "text-[11px] font-semibold tracking-[0.16em] text-[#1A1410]/60 uppercase dark:text-white/50"
@@ -136,17 +133,6 @@ function asJobType(value?: string): JobType {
     normalized === "internship"
     ? normalized
     : "full-time"
-}
-
-function asFrequency(value?: string): Frequency {
-  const normalized = value?.toLowerCase()
-
-  return normalized === "hour" ||
-    normalized === "day" ||
-    normalized === "month" ||
-    normalized === "year"
-    ? normalized
-    : "month"
 }
 
 function toDateInput(value?: string | null) {
@@ -185,7 +171,6 @@ function getInitialCompensation(job: JobDocument) {
       currency: job.compensation.currency ?? "USD",
       min: String(job.compensation.min),
       max: String(job.compensation.max),
-      frequency: asFrequency(job.compensation.frequency),
     }
   }
 
@@ -195,16 +180,11 @@ function getInitialCompensation(job: JobDocument) {
     currency: "BDT",
     min: salaryRange?.min ?? "",
     max: salaryRange?.max ?? "",
-    frequency: "month" as Frequency,
   }
 }
 
 function findCurrency(value: string) {
   return CURRENCIES.find((item) => item.value === value) ?? CURRENCIES[0]
-}
-
-function findFrequency(value: string) {
-  return FREQUENCIES.find((item) => item.value === value) ?? FREQUENCIES[0]
 }
 
 type FieldShellProps = {
@@ -329,9 +309,6 @@ export function EditJobForm({
   const [currency, setCurrency] = useState(
     findCurrency(initialCompensation.currency).value
   )
-  const [frequency, setFrequency] = useState<Frequency>(
-    initialCompensation.frequency
-  )
   const [minSalary, setMinSalary] = useState(initialCompensation.min)
   const [maxSalary, setMaxSalary] = useState(initialCompensation.max)
 
@@ -373,7 +350,6 @@ export function EditJobForm({
         .filter(Boolean)
 
     const currencyMeta = findCurrency(currency)
-    const frequencyMeta = findFrequency(frequency)
 
     return {
       title: title.trim(),
@@ -388,8 +364,8 @@ export function EditJobForm({
         currency,
         min: Number(minSalary),
         max: Number(maxSalary),
-        frequency,
-        label: `${currencyMeta.symbol}${minSalary}–${maxSalary}${frequencyMeta.suffix}`,
+        frequency: SALARY_FREQUENCY,
+        label: `${currencyMeta.symbol}${minSalary}–${maxSalary}${SALARY_PERIOD_SUFFIX}`,
       },
       responsibilities: toLines(responsibilities),
       qualifications: toLines(qualifications),
@@ -750,37 +726,6 @@ export function EditJobForm({
                   error={errors.deadline}
                   hint="Applications close at 11:59 PM on this date."
                 />
-
-                <div className="space-y-2">
-                  <Label htmlFor="frequency" className={labelClassName}>
-                    Pay frequency
-                  </Label>
-                  <Select
-                    items={FREQUENCIES.map((item) => ({
-                      value: item.value,
-                      label: item.label,
-                    }))}
-                    value={frequency}
-                    onValueChange={(value) =>
-                      setFrequency(asFrequency(value ?? "month"))
-                    }
-                  >
-                    <SelectTrigger
-                      id="frequency"
-                      className="h-11 w-full rounded-xl border-black/10 bg-[#FAF7F2]/70 px-3.5 text-sm dark:border-white/10 dark:bg-white/5"
-                    >
-                      <SelectValue placeholder="Per month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FREQUENCIES.map((item) => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className={hintClassName}>Used for the salary label.</p>
-                </div>
 
                 <div className="grid gap-4 sm:col-span-2 sm:grid-cols-[130px_minmax(0,1fr)_minmax(0,1fr)]">
                   <div className="space-y-2">

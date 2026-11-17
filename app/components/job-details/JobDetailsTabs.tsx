@@ -32,6 +32,7 @@ import {
 } from "@/app/components/job-details/styles"
 import {
   formatJobSalary,
+  getRoleFocus,
   type BenefitIcon,
   type HighlightIcon,
   type JobDetail,
@@ -357,7 +358,8 @@ function RequirementsPanel({ job }: { job: JobDetail }) {
         !hasSkills &&
         !hasNiceToHave && (
           <EmptyNote className="mt-5">
-            No requirements have been listed for this role yet.
+            This post doesn&apos;t list formal requirements yet. The Overview
+            and Responsibilities tabs cover the role context.
           </EmptyNote>
         )
       )}
@@ -433,7 +435,8 @@ function ResponsibilitiesPanel({ job }: { job: JobDetail }) {
         </ol>
       ) : (
         <EmptyNote className="mt-5">
-          No responsibilities have been listed for this role yet.
+          This post doesn&apos;t list specific duties yet.{" "}
+          {getRoleFocus(job.title, job.category)}
         </EmptyNote>
       )}
     </div>
@@ -649,7 +652,8 @@ function SalaryBenefitsPanel({ job }: { job: JobDetail }) {
         </>
       ) : (
         <EmptyNote className="mt-6">
-          Benefit details are shared during the hiring process.
+          This post doesn&apos;t list benefits yet. Ask {job.company.name} about
+          the package during the hiring process.
         </EmptyNote>
       )}
     </div>

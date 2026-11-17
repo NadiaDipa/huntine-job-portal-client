@@ -140,7 +140,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px] xl:items-start xl:gap-8">
-          <JobDetailsTabs job={job} />
+          <JobDetailsTabs key={job.id} job={job} />
           <JobDetailsSidebar job={job} />
         </div>
       </div>

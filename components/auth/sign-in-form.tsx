@@ -1,10 +1,9 @@
-
 "use client"
 
 import { useState } from "react"
 import type { FormEvent } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
 
@@ -16,6 +15,10 @@ import { authClient } from "@/lib/auth-client"
 
 export function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirectTo") ?? "/"
+
+  
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -46,7 +49,11 @@ export function SignInForm() {
       const { error } = await authClient.signIn.email({
         email,
         password,
+        callbackURL: redirectTo,
+
       })
+      console.log("Redirect destination:", redirectTo)
+      
 
       if (error) {
         toast.error(error.message || "Unable to sign in.")
@@ -57,7 +64,8 @@ export function SignInForm() {
         description: "You have signed in successfully.",
       })
 
-      router.replace("/")
+      router.push(redirectTo)
+      router.refresh()
     } catch {
       toast.error("Unable to sign in. Please try again.")
     } finally {
@@ -104,9 +112,7 @@ export function SignInForm() {
 
         <button
           type="button"
-          onClick={() =>
-            toast.info("Password reset is not connected yet.")
-          }
+          onClick={() => toast.info("Password reset is not connected yet.")}
           className="rounded-sm text-xs font-medium text-brand underline-offset-4 transition-colors hover:text-brand-hover hover:underline focus-visible:ring-2 focus-visible:ring-brand/50 focus-visible:outline-none"
         >
           Forgot password?
@@ -117,15 +123,12 @@ export function SignInForm() {
         type="submit"
         disabled={isLoading}
         aria-busy={isLoading}
-        className="group mt-3.5 h-11 w-full gap-2 rounded-full bg-brand bg-gradient-to-b from-orange-400 to-brand text-[13px] font-semibold tracking-[0.18em] text-[#0A0A0A] uppercase shadow-lg shadow-brand/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand/30 hover:brightness-105 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 focus-visible:ring-brand/50"
+        className="group mt-3.5 h-11 w-full gap-2 rounded-full bg-brand bg-gradient-to-b from-orange-400 to-brand text-[13px] font-semibold tracking-[0.18em] text-[#0A0A0A] uppercase shadow-lg shadow-brand/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand/30 hover:brightness-105 focus-visible:ring-brand/50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
       >
         {isLoading ? (
           <>
             Signing in...
-            <LoaderCircle
-              aria-hidden="true"
-              className="size-4 animate-spin"
-            />
+            <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
           </>
         ) : (
           <>
@@ -155,10 +158,8 @@ export function SignInForm() {
       <Button
         type="button"
         variant="outline"
-        onClick={() =>
-          toast.info("Google sign-in is not connected yet.")
-        }
-        className="mt-1.5 h-11 w-full gap-3 rounded-full border-[#1A1410]/15 bg-transparent text-sm font-medium text-[#1A1410] transition-all hover:border-brand/50 hover:bg-brand/5 hover:text-[#1A1410] active:scale-[0.98] focus-visible:ring-brand/40 dark:border-white/15 dark:bg-transparent dark:text-white dark:hover:bg-white/5 dark:hover:text-white"
+        onClick={() => toast.info("Google sign-in is not connected yet.")}
+        className="mt-1.5 h-11 w-full gap-3 rounded-full border-[#1A1410]/15 bg-transparent text-sm font-medium text-[#1A1410] transition-all hover:border-brand/50 hover:bg-brand/5 hover:text-[#1A1410] focus-visible:ring-brand/40 active:scale-[0.98] dark:border-white/15 dark:bg-transparent dark:text-white dark:hover:bg-white/5 dark:hover:text-white"
       >
         <GoogleIcon className="size-4" />
         Sign in with Google

@@ -1,3 +1,4 @@
+
 import { cache } from "react"
 import type { Metadata } from "next"
 import Link from "next/link"
@@ -21,6 +22,8 @@ import { JobDetailsTabs } from "@/app/components/job-details/JobDetailsTabs"
 import { Button } from "@/components/ui/button"
 import { getDemoJobById } from "@/lib/demo-jobs"
 import { toJobDetail, type JobDetail } from "@/lib/job-detail"
+import ApplyNowButton from "@/app/components/job-details/ApplyNowButton"
+
 
 type JobDetailsPageProps = {
   params: Promise<{ id: string }>
@@ -63,11 +66,13 @@ export async function generateMetadata({
 
 export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
   const { id } = await params
-  const job = await resolveJob(id)
+  const job = await resolveJob(id);
+
 
   if (!job) {
     notFound()
   }
+
 
   return (
     <main className="min-h-svh bg-[#FAF7F2] pb-16 dark:bg-[#0A0908]">
@@ -118,13 +123,9 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
               <Bookmark className="size-5" aria-hidden="true" />
             </Button>
 
-            <Button
-              type="button"
-              className="h-11 flex-1 gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-[#0A0A0A] shadow-lg shadow-brand/20 transition-colors hover:bg-brand-hover sm:flex-none"
-            >
-              <Send className="size-4" aria-hidden="true" />
-              Apply Now
-            </Button>
+          
+            <ApplyNowButton jobId={id}/>
+
           </div>
         </section>
 

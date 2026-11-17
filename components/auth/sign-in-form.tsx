@@ -18,7 +18,6 @@ export function SignInForm() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirectTo") ?? "/"
 
-  
   const [isLoading, setIsLoading] = useState(false)
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -50,10 +49,7 @@ export function SignInForm() {
         email,
         password,
         callbackURL: redirectTo,
-
       })
-      console.log("Redirect destination:", redirectTo)
-      
 
       if (error) {
         toast.error(error.message || "Unable to sign in.")

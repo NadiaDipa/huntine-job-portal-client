@@ -1,8 +1,8 @@
-
 "use client"
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import type { JobDocument } from "@/lib/managed-jobs"
 import { useRouter, useSearchParams } from "next/navigation"
 
 type FilterOption = {
@@ -10,21 +10,48 @@ type FilterOption = {
   count: number
 }
 
-const JOB_TYPE_OPTIONS: FilterOption[] = [
-  { label: "Full-time", count: 17 },
-  { label: "Part-time", count: 4 },
-  { label: "Contract", count: 2 },
-  { label: "Internship", count: 2 },
+type FilterJob = Pick<JobDocument, "jobType" | "category">
+
+const JOB_TYPE_ORDER = [
+  "Full-time",
+  "Part-time",
+  "Contract",
+  "Internship",
+  "Freelance",
 ]
 
-const JOB_CATEGORY_OPTIONS: FilterOption[] = [
-  { label: "Engineering & Tech", count: 1 },
-  { label: "Design", count: 4 },
-  { label: "Product", count: 1 },
-  { label: "Marketing", count: 3 },
-  { label: "Infrastructure", count: 0 },
-  { label: "Quality", count: 0 },
-]
+/** Builds de-duplicated filter options with counts from the current API result. */
+function buildOptions(
+  values: (string | undefined)[],
+  preferredOrder: string[] = []
+): FilterOption[] {
+  const counts = new Map<string, { label: string; count: number }>()
+
+  values.forEach((rawValue) => {
+    const label = rawValue?.trim()
+    if (!label) return
+
+    const key = label.toLowerCase()
+    const existing = counts.get(key)
+
+    if (existing) {
+      existing.count += 1
+    } else {
+      counts.set(key, { label, count: 1 })
+    }
+  })
+
+  const rank = (label: string) => {
+    const index = preferredOrder.findIndex(
+      (entry) => entry.toLowerCase() === label.toLowerCase()
+    )
+    return index === -1 ? preferredOrder.length : index
+  }
+
+  return Array.from(counts.values()).sort(
+    (a, b) => rank(a.label) - rank(b.label) || a.label.localeCompare(b.label)
+  )
+}
 
 function toFieldId(section: string, label: string) {
   return `${section}-${label}`
@@ -44,11 +71,7 @@ function FilterSection({
   options: FilterOption[]
   filterKey: string
   selectedValue: string | null
-  handleCheckboxChange: (
-    key: string,
-    name: string,
-    value: boolean
-  ) => void
+  handleCheckboxChange: (key: string, name: string, value: boolean) => void
 }) {
   return (
     <section>
@@ -98,18 +121,22 @@ function FilterSection({
 }
 
 export function BrowseJobsFilters({
+  jobs,
   className,
 }: {
+  jobs: FilterJob[]
   className?: string
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const handleCheckboxChange = (
-    key: string,
-    name: string,
-    value: boolean
-  ) => {
+  const jobTypeOptions = buildOptions(
+    jobs.map((job) => job.jobType),
+    JOB_TYPE_ORDER
+  )
+  const categoryOptions = buildOptions(jobs.map((job) => job.category))
+
+  const handleCheckboxChange = (key: string, name: string, value: boolean) => {
     const params = new URLSearchParams(searchParams.toString())
 
     if (value) {
@@ -136,7 +163,7 @@ export function BrowseJobsFilters({
       <div className="mt-6 space-y-7">
         <FilterSection
           title="Job Type"
-          options={JOB_TYPE_OPTIONS}
+          options={jobTypeOptions}
           filterKey="jobType"
           selectedValue={searchParams.get("jobType")}
           handleCheckboxChange={handleCheckboxChange}
@@ -144,7 +171,7 @@ export function BrowseJobsFilters({
 
         <FilterSection
           title="Job Category"
-          options={JOB_CATEGORY_OPTIONS}
+          options={categoryOptions}
           filterKey="category"
           selectedValue={searchParams.get("category")}
           handleCheckboxChange={handleCheckboxChange}

@@ -3,14 +3,12 @@ import type { Metadata } from "next"
 import { BrowseJobsFilters } from "@/app/components/BrowseJobsFilters"
 import { BrowseJobsSearch } from "@/app/components/BrowseJobsSearch"
 import { getJobs } from "@/app/api/jobs"
+import { JobCard } from "../components/JobCard"
 
 export const metadata: Metadata = {
   title: "Browse Jobs | Huntine",
   description: "Search open roles and narrow them down with filters.",
 }
-
-const panelClassName =
-  "rounded-xl border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(16,10,6,0.03)] dark:border-white/[0.06] dark:bg-[#141110] dark:shadow-none"
 
 export default async function BrowseJobsPage({
   searchParams,
@@ -31,7 +29,14 @@ export default async function BrowseJobsPage({
 
   const query = urlSearch.toString()
 
-  const jobs = await getJobs(query)
+  // Fetch the filtered list plus the unfiltered set used for facet counts, so
+  // the sidebar can still switch to a category that the current filter hides.
+  const [jobs, allJobs] = await Promise.all([
+    getJobs(query),
+    query ? getJobs() : Promise.resolve(null),
+  ])
+
+  const facetJobs = allJobs ?? jobs
 
   return (
     <main className="min-h-svh bg-[#FAF7F2] pb-16 dark:bg-[#0A0908]">
@@ -41,7 +46,13 @@ export default async function BrowseJobsPage({
         <BrowseJobsSearch />
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start xl:gap-8">
-          <BrowseJobsFilters className="lg:sticky lg:top-24" />
+          <BrowseJobsFilters
+            jobs={facetJobs.map((job) => ({
+              jobType: job.jobType,
+              category: job.category,
+            }))}
+            className="lg:sticky lg:top-24"
+          />
 
           <section aria-labelledby="browse-jobs-results-heading">
             <h2
@@ -51,30 +62,18 @@ export default async function BrowseJobsPage({
               Found {jobs.length} Professional Jobs
             </h2>
 
-            <ul className="mt-4 space-y-3">
-              {jobs.map((job) => (
-                <li key={job._id ?? job.id}>
-                  <article
-                    className={`${panelClassName} px-5 py-4 transition-colors hover:border-black/10 dark:hover:border-white/10`}
-                  >
-                    <h3 className="text-base font-semibold text-[#1A1410] dark:text-white">
-                      {job.title}
-                    </h3>
-
-                    <p className="mt-1 text-[13px] text-[#1A1410]/45 dark:text-white/40">
-                      {job.company}
-                      <span
-                        aria-hidden="true"
-                        className="px-1.5 text-[#1A1410]/25 dark:text-white/20"
-                      >
-                        •
-                      </span>
-                      {job.location}
-                    </p>
-                  </article>
-                </li>
-              ))}
-            </ul>
+            {jobs.length > 0 ? (
+              <ul className="mt-4 space-y-3">
+                {jobs.map((job) => (
+                  <JobCard key={job._id ?? job.id} job={job} />
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 rounded-xl border border-black/[0.06] bg-white px-5 py-6 text-sm text-[#1A1410]/55 dark:border-white/[0.06] dark:bg-[#141110] dark:text-white/50">
+                No jobs match these filters yet. Try clearing the search or
+                choosing a different category.
+              </p>
+            )}
           </section>
         </div>
       </div>
